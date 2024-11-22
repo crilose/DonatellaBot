@@ -9,7 +9,7 @@ import os
 # Usa datetime.time correttamente
 
 # Configura OpenAI
-openai.api_key = os.getenv("OPENAI_KEY")
+openai.api_key = os.environ.get("OPENAI_KEY")
 
 # Percorso del file JSON per salvare i messaggi
 MESSAGES_FILE = 'messages.json'
