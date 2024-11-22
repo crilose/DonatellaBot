@@ -40,6 +40,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Funzione per salvare i messaggi nel file JSON
 async def save_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Controlla se update.message è valido
+    if not update.message or not update.message.text:
+        return  # Ignora aggiornamenti senza messaggi di testo
+
     user = update.message.from_user.full_name  # Nome dell'utente
     text = update.message.text  # Testo del messaggio
 
