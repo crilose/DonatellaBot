@@ -6,18 +6,21 @@ from datetime import datetime, time
 import json
 import os
 
+# Usa datetime.time correttamente
 
 # Configura OpenAI
-openai.api_key = "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"  # Assicurati di usare la tua chiave API OpenAI
+openai.api_key = OPENAI_KEY
 
 # Percorso del file JSON per salvare i messaggi
 MESSAGES_FILE = 'messages.json'
 
 # Ora specifica per il riassunto giornaliero
-RIASSUNTO_ORA = 23  # Imposta l'orario desiderato per il riassunto, in formato 24h
-
+RIASSUNTO_ORA = 17
+RIASSUNTO_MINUTO = 20
+riassunto_orario = time(RIASSUNTO_ORA, RIASSUNTO_MINUTO)
 # ID della chat da impostare una volta che lo ottieni tramite il comando `/getchatid`
 CHAT_ID = None  # Per ora lascia vuoto, verrà settato dopo aver ottenuto l'ID della chat
+
 
 # Funzione per ottenere l'ID della chat
 async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -26,12 +29,20 @@ async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     CHAT_ID = chat_id  # Salva l'ID
     await update.message.reply_text(f"L'ID della chat è: {chat_id}")
 
+
+# Funzione di avvio del bot
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Risponde con un messaggio di benvenuto quando l'utente invia il comando /start
-    await update.message.reply_text("Ciao! Sono il bot che riassume i messaggi di questo gruppo ogni giorno.")
+    await update.message.reply_text(
+        "Ciao! Sono il bot che riassume i messaggi di questo gruppo ogni giorno."
+    )
+
 
 # Funzione per salvare i messaggi nel file JSON
-def save_message(user, text):
+async def save_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.message.from_user.full_name  # Nome dell'utente
+    text = update.message.text  # Testo del messaggio
+
     # Ottieni la data odierna come stringa (formato YYYY-MM-DD)
     today = datetime.now().strftime('%Y-%m-%d')
 
@@ -57,10 +68,12 @@ def save_message(user, text):
     with open(MESSAGES_FILE, 'w') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
+
 # Funzione per fare il riassunto su richiesta
 async def riassumi(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not CHAT_ID:
-        await update.message.reply_text("Impossibile ottenere l'ID della chat.")
+        await update.message.reply_text("Impossibile ottenere l'ID della chat."
+                                        )
         return
 
     # Leggi i messaggi dal file JSON
@@ -76,12 +89,18 @@ async def riassumi(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",  # Usa il modello di chat
-            messages=[
-                {"role": "system", "content": "Sei un assistente che crea riassunti brevi e chiari."},
-                {"role": "user", "content": f"Riassumi questa conversazione:\n\n{chr(10).join(data[today])}"}
-            ],
-            max_tokens=100
-        )
+            messages=[{
+                "role":
+                "system",
+                "content":
+                "Sei un assistente che crea riassunti brevi e chiari."
+            }, {
+                "role":
+                "user",
+                "content":
+                f"Riassumi questa conversazione:\n\n{chr(10).join(data[today])}"
+            }],
+            max_tokens=100)
         riassunto = response['choices'][0]['message']['content'].strip()
     except Exception as e:
         riassunto = f"Errore: {e}"
@@ -94,6 +113,7 @@ async def riassumi(update: Update, context: ContextTypes.DEFAULT_TYPE):
     with open(MESSAGES_FILE, 'w') as f:
         json.dump(data, f)
 
+
 # Funzione per il riassunto giornaliero
 async def riassunto_giornaliero(context: ContextTypes.DEFAULT_TYPE):
     if not CHAT_ID:
@@ -105,48 +125,57 @@ async def riassunto_giornaliero(context: ContextTypes.DEFAULT_TYPE):
 
     today = datetime.now().strftime('%Y-%m-%d')
     if today not in data or not data[today]:
-        await context.bot.send_message(CHAT_ID, "Non ci sono messaggi da riassumere.")
+        await context.bot.send_message(CHAT_ID,
+                                       "Non ci sono messaggi da riassumere.")
         return
 
     # Usa OpenAI per generare un riassunto
     try:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",  # Usa il modello di chat
-            messages=[
-                {"role": "system", "content": "Sei un assistente che crea riassunti brevi e chiari."},
-                {"role": "user", "content": f"Riassumi questa conversazione:\n\n{chr(10).join(data[today])}"}
-            ],
-            max_tokens=100
-        )
+            messages=[{
+                "role":
+                "system",
+                "content":
+                "Sei un assistente che crea riassunti brevi e chiari."
+            }, {
+                "role":
+                "user",
+                "content":
+                f"Riassumi questa conversazione:\n\n{chr(10).join(data[today])}"
+            }],
+            max_tokens=100)
         riassunto = response['choices'][0]['message']['content'].strip()
     except Exception as e:
         riassunto = f"Errore: {e}"
 
-    # Invia il riassunto
-    await context.bot.send_message(CHAT_ID, f"Ecco il riassunto giornaliero:\n{riassunto}")
+    # Invia il riassunto giornaliero
+    await context.bot.send_message(
+        CHAT_ID, f"Ecco il riassunto giornaliero:\n{riassunto}")
 
     # Svuota i messaggi per oggi
     data[today] = []
     with open(MESSAGES_FILE, 'w') as f:
         json.dump(data, f)
 
+
 # Funzione principale
 def main():
     application = Application.builder().token(TELEGRAM_TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, save_message))
+    application.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, save_message))
     application.add_handler(CommandHandler("riassumi", riassumi))
-    application.add_handler(CommandHandler("getchatid", get_chat_id))  # Aggiungi il comando per ottenere l'ID
+    application.add_handler(CommandHandler("getchatid", get_chat_id))
 
     job_queue = application.job_queue
     job_queue.run_daily(
         riassunto_giornaliero,  # La funzione per il riassunto
-        time=time(RIASSUNTO_ORA, 0),  # Crea correttamente un oggetto time per 23:00
-    )
+        riassunto_orario)
 
     application.run_polling()
 
+
 if __name__ == "__main__":
-    get_chat_id()  # Carica l'ID della chat dal file, se disponibile
     main()
