@@ -169,8 +169,8 @@ def main():
     application.add_handler(CommandHandler("riassumi", riassumi))
     application.add_handler(CommandHandler("getchatid", get_chat_id))
 
-    job_queue = application.job_queue
-    job_queue.run_daily(
+    # Accedi alla coda dei job direttamente dall'oggetto `application`
+    application.job_queue.run_daily(
         riassunto_giornaliero,  # La funzione per il riassunto
         riassunto_orario)
 
