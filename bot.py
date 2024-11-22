@@ -25,7 +25,7 @@ else:
 MESSAGES_FILE = 'messages.json'
 
 # ID della chat da impostare una volta che lo ottieni tramite il comando `/getchatid`
-CHAT_ID = None  # Per ora lascia vuoto, verrà settato dopo aver ottenuto l'ID della chat
+CHAT_ID = -1001486274525  # Per ora lascia vuoto, verrà settato dopo aver ottenuto l'ID della chat
 
 # Funzione per ottenere l'ID della chat
 async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
