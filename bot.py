@@ -148,5 +148,5 @@ def main():
     application.run_polling()
 
 if __name__ == "__main__":
-    load_chat_id()  # Carica l'ID della chat dal file, se disponibile
+    get_chat_id()  # Carica l'ID della chat dal file, se disponibile
     main()
