@@ -9,7 +9,13 @@ import os
 # Usa datetime.time correttamente
 
 # Configura OpenAI
-openai.api_key = os.environ.get('OPENAI_KEY')
+openai.api_key = os.getenv('OPENAI_KEY')
+
+# Verifica se la chiave è presente
+if openai.api_key is None:
+    print("Errore: la chiave API di OpenAI non è stata trovata.")
+else:
+    print("Chiave API di OpenAI caricata correttamente.")
 
 # Percorso del file JSON per salvare i messaggi
 MESSAGES_FILE = 'messages.json'
