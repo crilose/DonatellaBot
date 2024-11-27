@@ -135,7 +135,7 @@ async def genera_riassunto(context: ContextTypes.DEFAULT_TYPE):
             model="gpt-3.5-turbo",  # Usa il modello di chat
             messages=[{
                 "role": "system",
-                "content": "Sei un assistente che crea riassunti brevi, chiari e diretti. Evita di essere vago e fornisci risposte concrete. Puoi anche citare direttamente qualche messaggio. Inoltre non essere rigido, mantieni un tono umoristico."
+                "content": "Sei un assistente che crea riassunti brevi, chiari e diretti. Evita di essere vago e fornisci risposte concrete. Puoi anche citare direttamente qualche messaggio. Inoltre non essere rigido, mantieni un tono umoristico. Riporta brevemente le opinioni di ciascun partecipante alla discussione, indicandone il nome."
             }, {
                 "role": "user",
                 "content": f"Riassumi questa conversazione in modo conciso e preciso:\n\n{conversation}"
